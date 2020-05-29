@@ -19,7 +19,10 @@ IMG_NAME=kernel.img
 
 if [[ "${1}" = "build" ]]; then
     ${MKDIR} ${BIN_DIR}
-    ${GCC} ${CFLAGS} -I${KER_SRC} -c ${KER_SRC}/boot.S -o ${BIN_DIR}/boot.o
+    for src in ${SRC_DIR}/*/*.S; do
+        obj="$(basename ${src} .S).o"
+        ${GCC} ${CFLAGS} -I${KER_SRC} -c ${src} -o ${BIN_DIR}/${obj}
+    done
     for src in ${SRC_DIR}/*/*.c; do
         obj="$(basename ${src} .c).o"
         ${GCC} ${CFLAGS} -I${KER_SRC} -I${KER_HEAD} -std=gnu99 -c ${src} -o ${BIN_DIR}/${obj} ${CSRCFLAGS}

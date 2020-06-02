@@ -1,51 +1,14 @@
 #include <common/stdlib.h>
 #include <stdint.h>
 
-// raspi model 1 does not have division instruction, so we need to define our own
 __inline__ uint32_t div(uint32_t dividend, uint32_t divisor) {
-#ifdef MODEL_1
-    // Use long division, but in binary.  Copied from Stack overflow...
-    uint32_t denom=divisor;
-    uint32_t current = 1;
-    uint32_t answer=0;
-
-    if ( denom > dividend)
-        return 0;
-
-    if ( denom == dividend)
-        return 1;
-
-    while (denom <= dividend) {
-        denom <<= 1;
-        current <<= 1;
-    }
-
-    denom >>= 1;
-    current >>= 1;
-
-    while (current!=0) {
-        if ( dividend >= denom) {
-            dividend -= denom;
-            answer |= current;
-        }
-        current >>= 1;
-        denom >>= 1;
-    }
-    return answer;
-#else
     return dividend / divisor;
-#endif
 }
 
 __inline__ divmod_t divmod(uint32_t dividend, uint32_t divisor) {
     divmod_t res;
-#ifdef MODEL_1
-    res.div = div(dividend, divisor);
-    res.mod = dividend - res.div*divisor;
-#else
     res.div = dividend / divisor;
     res.mod = dividend % divisor;
-#endif
     return res;
 }
 

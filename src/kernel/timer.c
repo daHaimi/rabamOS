@@ -1,6 +1,7 @@
 #include <kernel/timer.h>
 #include <kernel/process.h>
 #include <kernel/interrupts.h>
+#include <kernel/kerio.h>
 
 static timer_registers_t * timer_regs;
 
@@ -18,9 +19,8 @@ void timer_init(void) {
 }
 
 void timer_set(uint32_t usecs) {
-        timer_regs->timer1 = timer_regs->counter_low + usecs;
+    timer_regs->timer1 = timer_regs->counter_low + usecs;
 }
-
 
 __attribute__ ((optimize(0))) void udelay (uint32_t usecs) {
     volatile uint32_t curr = timer_regs->counter_low;

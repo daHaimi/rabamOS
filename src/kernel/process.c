@@ -159,7 +159,6 @@ void mutex_unlock(mutex_t * lock) {
     lock->lock = 1;
     lock->locker = 0;
 
-
     // If there is anyone waiting on this, put them back in the run queue
     if (size_pcb_list(&lock->wait_queue)) {
         thread = pop_pcb_list(&lock->wait_queue);  

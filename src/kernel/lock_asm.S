@@ -6,6 +6,6 @@
 // Returns 0 if the lock was not acquired and 1 if it was.
 try_lock:
     mov     r1, #0
-    swp     r2, r1, [r0]
+    strex   r2, r1, [r0]
     mov     r0, r2
-    blx     lr 
+    blx     lr

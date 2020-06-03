@@ -3,9 +3,10 @@
 MKDIR="mkdir -p"
 RM="rm -rf"
 ECHO="echo"
-CP="cp -r"
+CP="cp -R"
 OBJCOPY="arm-none-eabi-objcopy"
 MD5SUM=md5sum
+UNZIP="unzip"
 BIN_DIR=bin
 BIN_FW="${BIN_DIR}/firmware"
 BUILD_DIR=build
@@ -13,27 +14,16 @@ EMU=/usr/local/bin/qemu-system-arm
 VNC=vinagre
 GCC=arm-none-eabi-gcc
 WGET=wget
-CPU=cortex-a7
+CPU=arm1176jzf-s
 SRC_DIR=src
 COMMON_SRC=${SRC_DIR}/common
 KER_SRC=${SRC_DIR}/kernel
 KER_HEAD=include
-DIRECTIVES=""
+DIRECTIVES=" -D MODEL_1"
 CFLAGS="-mcpu=${CPU} -fpic -ffreestanding ${DIRECTIVES}"
 CSRCFLAGS="-O2 -Wall -Wextra"
 LFLAGS="-ffreestanding -O2 -nostdlib"
-IMG_NAME="kernel7"
-RASPI_REPO="https://github.com/raspberrypi/firmware/archive/master.zip"
-DIST_FILES=(bootcode.bin fixup.dat start.elf *.dtb)
-
-download_bin() {
-  if [[ ! -d "${BIN_FW}" ]]; then
-    ${MKDIR} "${BIN_FW}"
-    cd "${BIN_FW}"
-    ${WGET} ${RASPI_REPO}
-    ${UNZIP} ${RASPI_REPO}
-  fi
-}
+IMG_NAME="kernel"
 
 if [[ "${1}" = "build" ]]; then
     ${MKDIR} ${BIN_DIR}
@@ -50,7 +40,7 @@ if [[ "${1}" = "build" ]]; then
 fi
 
 if [[ "${1}" = "run" ]]; then
-    ${EMU} -m 1g -M raspi2 -serial stdio -kernel ${IMG_NAME}.elf -vnc :5 & ${VNC} localhost:5905 && killall ${EMU}
+    ${EMU} -m 256 -M raspi1 -serial stdio -kernel ${IMG_NAME}.elf -vnc :5 & ${VNC} localhost:5905 && killall ${EMU}
 fi
 
 if [[ "${1}" = "clean" ]]; then
@@ -60,15 +50,6 @@ fi
 
 if [[ "${1}" = "deploy" ]]; then
     export BOOT_DIR="/media/${USER}/${2}"
-    if [[ ! -d "${BOOT_DIR}" ]]; then
-      echo "Folder not found!"
-      exit 1
-    fi
-    download_bin
-    ${RM} "${BOOT_DIR}" && ${MKDIR} "${BOOT_DIR}"
-    for f in ${DIST_FILES}; do
-      ${CP} "${BIN_FW}/${f}" "${BOOT_DIR}"
-    done
     ${CP} ${IMG_NAME}.img "${BOOT_DIR}/"
     ( cd "${BOOT_DIR}/" && ${MD5SUM} ${IMG_NAME}.img > ${IMG_NAME}.img.md5 )
     sync

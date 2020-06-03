@@ -12,10 +12,6 @@
 // r2 -> 0x00000100 - start of ATAGS
 // preserve these registers as argument for kernel_main
 _start:
-    mrc p15, #0, r1, c0, c0, #5
-    and r1, r1, #3
-    cmp r1, #0
-    bne halt
     // Setup the stack.  Stack will be 32 KB above kernel image
     ldr sp, =__end
 	mov r4, #(KERNEL_STACK_SIZE)

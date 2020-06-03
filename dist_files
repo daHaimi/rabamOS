@@ -1,0 +1,4 @@
+bootcode.bin
+fixup_cd.dat
+start_cd.elf
+*.dtb

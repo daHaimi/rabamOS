@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifndef PERIPHERAL_H
 #define PERIPHERAL_H
 
@@ -10,5 +12,9 @@
 #define UART0_OFFSET 0x201000
 #define GPIO_OFFSET 0x200000
 #define EMMC_OFFSET 0x300000
+
+void mmio_write(uint32_t reg, uint32_t data);
+uint32_t mmio_read(uint32_t reg);
+void delay(int32_t count);
 
 #endif

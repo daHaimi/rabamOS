@@ -3,25 +3,6 @@
 #include <kernel/uart.h>
 #include <common/stdlib.h>
 
-// Memory-Mapped I/O output
-void mmio_write(uint32_t reg, uint32_t data)
-{
-    *(volatile uint32_t*)reg = data;
-}
-
-// Memory-Mapped I/O input
-uint32_t mmio_read(uint32_t reg)
-{
-    return *(volatile uint32_t*)reg;
-}
-
-// Loop <delay> times in a way that the compiler won't optimize away
-void delay(int32_t count)
-{
-    asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
-            : "=r"(count): [count]"0"(count) : "cc");
-}
-
 void uart_init()
 {
     uart_control_t control;
@@ -54,7 +35,7 @@ void uart_init()
     // Fractional part register = (.627 * 64) + 0.5 = 40.6 = ~40.
     mmio_write(UART0_FBRD, 40);
 
-    // Enable FIFO & 8 bit data transmissio (1 stop bit, no parity).
+    // Enable FIFO & 8 bit data transmission (1 stop bit, no parity).
     mmio_write(UART0_LCRH, (1 << 4) | (1 << 5) | (1 << 6));
 
     // Mask all interrupts.

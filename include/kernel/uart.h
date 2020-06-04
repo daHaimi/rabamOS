@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <kernel/peripheral.h>
+#include <kernel/gpio.h>
 
 #ifndef UART_H
 #define UART_H
@@ -42,29 +43,12 @@ typedef union uart_control {
     uint32_t as_int;
 } uart_control_t;
 
-void mmio_write(uint32_t reg, uint32_t data);
-
-uint32_t mmio_read(uint32_t reg);
-
-// Loop <delay> times in a way that the compiler won't optimize away
-void delay(int32_t count);
-
 enum
 {
-    // The GPIO registers base address.
-    GPIO_BASE = PERIPHERAL_BASE + GPIO_OFFSET,
-    // The offsets for reach register.
-
-    // Controls actuation of pull up/down to ALL GPIO pins.
-    GPPUD = (GPIO_BASE + 0x94),
-
-    // Controls actuation of pull up/down for specific GPIO pin.
-    GPPUDCLK0 = (GPIO_BASE + 0x98),
-
     // The base address for UART.
     UART0_BASE = PERIPHERAL_BASE + UART0_OFFSET,
 
-    // The offsets for reach register for the UART.
+    // The offsets for each register for the UART.
     UART0_DR     = (UART0_BASE + 0x00),
     UART0_RSRECR = (UART0_BASE + 0x04),
     UART0_FR     = (UART0_BASE + 0x18),

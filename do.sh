@@ -40,7 +40,7 @@ if [[ "${1}" = "build" ]]; then
 fi
 
 if [[ "${1}" = "run" ]]; then
-    ${EMU} -m 256 -M raspi1 -serial stdio -kernel ${IMG_NAME}.elf -vnc :5 & ${VNC} localhost:5905 && killall ${EMU}
+    ${EMU} -m 512 -M raspi1 -serial stdio -kernel ${IMG_NAME}.elf -vnc :5 & ${VNC} localhost:5905 && killall ${EMU}
 fi
 
 if [[ "${1}" = "clean" ]]; then

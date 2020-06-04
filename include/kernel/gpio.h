@@ -8,6 +8,8 @@
 #define HIGH 1
 
 // Define available GPIOs
+#define GPIO0   0 /* SDA0 */
+#define GPIO1   1 /* SCL0 */
 #define GPIO2   2 /* SDA1 */
 #define GPIO3   3 /* SCL1 */
 #define GPIO4   4
@@ -18,16 +20,16 @@
 #define GPIO9   9 /* MISO */
 #define GPIO10 10 /* MOSI */
 #define GPIO11 11 /* SCLK */
-#define GPIO12 12
-#define GPIO13 13
+#define GPIO12 12 /* PWM0 */
+#define GPIO13 13 /* PWM1 */
 #define GPIO14 14 /* TxD */
 #define GPIO15 15 /* RxD */
 #define GPIO16 16
 #define GPIO17 17
 #define GPIO18 18 /* PCM_CLK */
-#define GPIO19 19
-#define GPIO20 20
-#define GPIO21 21
+#define GPIO19 19 /* PCM_FS */
+#define GPIO20 20 /* PCM_DIN */
+#define GPIO21 21 /* PCM_DOUT */
 #define GPIO22 22
 #define GPIO23 23
 #define GPIO24 24

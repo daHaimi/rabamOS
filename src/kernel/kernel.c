@@ -10,6 +10,7 @@
 #include <kernel/process.h>
 #include <kernel/mutex.h>
 #include <common/stdlib.h>
+#include <common/main.h>
 
 mutex_t test_mut;
 
@@ -46,8 +47,10 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags)
     printf("INITIALIZING SCHEDULER...");
     process_init();
     printf("DONE\n");
-
-    puts("Hello, kernel World!\n");
+    printf("Running setup...");
+    setup();
+    printf("DONE\n");
+    printf("Kernel booted in %dus\n", uuptime());
 
     mutex_init(&test_mut);
     create_kernel_thread(test, "TEST", 4);

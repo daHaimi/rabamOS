@@ -8,8 +8,8 @@
 void timer_init(void);
 
 void timer_set(uint32_t usecs);
-
 void udelay(uint32_t usecs);
+uint32_t uuptime();
 
 typedef struct {
     uint8_t timer0_matched: 1;

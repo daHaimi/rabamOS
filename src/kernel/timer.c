@@ -29,3 +29,7 @@ __attribute__ ((optimize(0))) void udelay (uint32_t usecs) {
         x = timer_regs->counter_low - curr;
     }
 }
+
+uint32_t uuptime() {
+    return timer_regs->counter_low;
+}

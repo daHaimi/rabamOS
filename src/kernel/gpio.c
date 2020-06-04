@@ -33,3 +33,18 @@ void gpio_clr(uint8_t gpio) {
 uint8_t gpio_read(uint8_t gpio) {
     return (mmio_read(GPLEV0) >> gpio) & 1;
 }
+
+/**
+ * Set Pull-Up or pull down
+ * The Sequence is taken directly from the manual
+ * @param gpio
+ * @param v LOW (Pull-Down) or HIGH (Pull-Up)
+ */
+void gpio_set_pull(uint8_t gpio, uint8_t v) {
+    mmio_write(GPPUD, 1 << v);
+    delay(150);
+    mmio_write(GPPUDCLK0, (1 << gpio));
+    delay(150);
+    mmio_write(GPPUD, 0x00000000);
+    mmio_write(GPPUDCLK0, 0x00000000);
+}

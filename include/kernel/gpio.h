@@ -53,6 +53,7 @@
 #define GPPUD (GPIO_BASE + 0x94) /* Controls actuation of pull up/down to ALL GPIO pins. */
 #define GPPUDCLK0 (GPIO_BASE + 0x98)/* Controls actuation of pull up/down for specific GPIO pin. */
 
+// GPIO Modes
 #define GPIO_MODE_IN   = 0
 #define GPIO_MODE_OUT  = 1
 #define GPIO_MODE_ALT0 = 4
@@ -62,10 +63,18 @@
 #define GPIO_MODE_ALT4 = 3
 #define GPIO_MODE_ALT5 = 2
 
+// Define events for interrupts
+#define EVENTS_NONE    0
+#define EVENTS_FALLING 1
+#define EVENTS_RISING  2
+#define EVENTS_BOTH    3
+
+
 // Macros
 void gpio_mode(uint8_t gpio, char mode);
 void gpio_write(uint8_t gpio, uint8_t v);
 void gpio_clr(uint8_t gpio);
 uint8_t gpio_read(uint8_t gpio);
+void gpio_set_pull(uint8_t gpio, uint8_t v);
 
 #endif

@@ -48,3 +48,6 @@ void gpio_set_pull(uint8_t gpio, uint8_t v) {
     mmio_write(GPPUD, 0x00000000);
     mmio_write(GPPUDCLK0, 0x00000000);
 }
+
+// TODO: Next step would be a simple way to trigger GPIO-Interrupts.
+// The basic Idea is rolled out here: https://www.raspberrypi.org/forums/viewtopic.php?t=248813

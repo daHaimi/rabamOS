@@ -8,7 +8,8 @@ uint16_t led_state = 1;
 uint32_t nextTimer = 0;
 
 void iButton() {
-    if (nextTimer < uuptime()) {
+    uart_println("iButton Called");
+    if (uuptime() < nextTimer) {
         return;
     }
     nextTimer = uuptime() + 100000;
@@ -20,14 +21,16 @@ void iButton() {
 
 void setup() {
     // LED
+    init_pwm();
     gpio_mode_pwm(GPIO18);
     gpio_write_analog(GPIO18, led_state);
+
     // Button
     gpio_mode(GPIO17, GPIO_MODE_IN);
     gpio_set_pull(GPIO17, HIGH);
-
     gpio_interrupt(GPIO17, EVENTS_FALLING, iButton);
 }
 
 void loop() {
+    delay(10000);
 }

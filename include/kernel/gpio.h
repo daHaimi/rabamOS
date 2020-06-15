@@ -95,9 +95,13 @@ typedef void (*gpio_handler)(void);
 #define PWM_RNG2 (PWM_BASE + 0x20)
 #define PWM_DAT2 (PWM_BASE + 0x24)
 
+#define CM_PWMCTL (PERIPHERAL_BASE + CLOCK_OFFSET + 0xa0)
+#define CM_PWMDIV (PERIPHERAL_BASE + CLOCK_OFFSET + 0xa4)
+
 #define PWM_RANGE 1024
 
 // Forward declarations
+void init_pwm();
 void gpio_mode(uint8_t gpio, uint32_t mode);
 void gpio_mode_pwm(uint8_t gpio);
 void gpio_write(uint8_t gpio, uint8_t v);

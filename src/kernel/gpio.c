@@ -11,6 +11,17 @@ uint32_t interruptsReceived = 0;
 gpio_handler gpioHandler[GPIO_NUM_HANDLERS];
 uint32_t pwm_ctl = 0;
 
+#define CLK_BASE 0x5a000000
+
+void init_pwm() {
+    *(volatile uint32_t*)CM_PWMCTL = CLK_BASE | ~0x10; // Turn off enable flag.
+    while(*(volatile uint32_t*)CM_PWMCTL & 0x80); // Wait for busy flag to turn off.
+    *(volatile uint32_t*)CM_PWMDIV = CLK_BASE | (5 << 12); // Configure divider.
+    *(volatile uint32_t*)CM_PWMCTL = CLK_BASE | 0x206; // Source=PLLD (500 MHz), 1-stage MASH.
+    *(volatile uint32_t*)CM_PWMCTL = CLK_BASE | 0x216; // Enable clock.
+    while(!(*(volatile uint32_t*)CM_PWMCTL & 0x80)); // Wait for busy flag to turn on.
+}
+
 void gpio_mode(uint8_t gpio, uint32_t mode) {
     // GPSEL1 is the first offset, so its offset is the offeset per selection number
     // The used registers on raspi are 0, 1 and 2
@@ -44,7 +55,7 @@ void gpio_mode_pwm(uint8_t gpio) {
         pwm_ctl |= (1 << 8); // CTL: Enable channel 2
         *(volatile uint32_t*)PWM_RNG2 = PWM_RANGE;
     }
-    *(volatile uint32_t*)PWM_CTL = pwm_ctl; // CTL: Enable Channel 1
+    *(volatile uint32_t*)PWM_CTL = pwm_ctl;
 }
 
 void gpio_write(uint8_t gpio, uint8_t v) {

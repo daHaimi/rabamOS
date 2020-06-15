@@ -2,7 +2,9 @@
 
 #ifndef PERIPHERAL_H
 #define PERIPHERAL_H
-
+/**
+ * Model 2 and 3 have 0x3F000000 as peripheral base
+ */
 #define PERIPHERAL_BASE 0x20000000
 #define PERIPHERAL_LENGTH 0x01000000
 

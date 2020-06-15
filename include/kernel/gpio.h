@@ -42,8 +42,8 @@
 #define GPFSEL0 (GPIO_BASE + 0x00) /* GPIO Function Selection 0 */
 #define GPFSEL1 (GPIO_BASE + 0x04) /* GPIO Function Selection 1 */
 #define GPFSEL2 (GPIO_BASE + 0x08) /* GPIO Function Selection 2 */
-#define GPSET0 (GPIO_BASE + 0x1C)  /* Set GPIO value */
-#define GPCLR0 (GPIO_BASE + 0x28)  /* Clear GPIO value */
+#define GPSET0 (GPIO_BASE + 0x1C)  /* Set GPIO value HIGH*/
+#define GPCLR0 (GPIO_BASE + 0x28)  /* Set GPIO value LOW */
 #define GPLEV0 (GPIO_BASE + 0x2C)  /* Get GPIO value */
 #define GPEDS0 (GPIO_BASE + 0x40)  /* Event detect status */
 #define GPREN0 (GPIO_BASE + 0x4C)  /* Rising Edge detection enable */
@@ -56,14 +56,14 @@
 #define GPPUDCLK0 (GPIO_BASE + 0x98)/* Controls actuation of pull up/down for specific GPIO pin. */
 
 // GPIO Modes
-#define GPIO_MODE_IN   = 0
-#define GPIO_MODE_OUT  = 1
-#define GPIO_MODE_ALT0 = 4
-#define GPIO_MODE_ALT1 = 5
-#define GPIO_MODE_ALT2 = 6
-#define GPIO_MODE_ALT3 = 7
-#define GPIO_MODE_ALT4 = 3
-#define GPIO_MODE_ALT5 = 2
+#define GPIO_MODE_IN   0
+#define GPIO_MODE_OUT  1
+#define GPIO_MODE_ALT0 4
+#define GPIO_MODE_ALT1 5
+#define GPIO_MODE_ALT2 6
+#define GPIO_MODE_ALT3 7
+#define GPIO_MODE_ALT4 3
+#define GPIO_MODE_ALT5 2
 
 // Define events for interrupts
 #define EVENTS_NONE    0
@@ -73,7 +73,7 @@
 
 
 // Macros
-void gpio_mode(uint8_t gpio, char mode);
+void gpio_mode(uint8_t gpio, uint32_t mode);
 void gpio_write(uint8_t gpio, uint8_t v);
 void gpio_clr(uint8_t gpio);
 uint8_t gpio_read(uint8_t gpio);

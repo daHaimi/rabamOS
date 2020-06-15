@@ -9,6 +9,7 @@
 #include <kernel/timer.h>
 #include <kernel/process.h>
 #include <kernel/mutex.h>
+#include <kernel/uart.h>
 #include <common/stdlib.h>
 #include <common/main.h>
 
@@ -18,17 +19,16 @@ void test(void) {
     int i = 0;
     printf("starting thread %d\n", i++);
     while (1) {
-        if (i % 10 == 0)
+        if (i++ % 10 == 0)
             mutex_lock(&test_mut);
         else if (i % 10 == 9) 
             mutex_unlock(&test_mut);
-        printf("test %d\n", i++);
-        udelay(1000000);
+        printf("[t]\n");
+        udelay(5000000);
     }
 }
 
-void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags)
-{
+void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     int i = 0;
     // Declare as unused
     (void) r0;
@@ -37,30 +37,32 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags)
 
     mem_init((atag_t *)atags);
     gpu_init();
-    printf("GPU INITIALIZED\n");
-    printf("INITIALIZING INTERRUPTS...");
+    printf("GPU INITIALIZED . ");
+
+    printf("INTERRUPTS");
     interrupts_init();
-    printf("DONE\n");
-    printf("INITIALIZING TIMER...");
+    printf(". ");
+    printf("TIMER ");
     timer_init();
-    printf("DONE\n");
-    printf("INITIALIZING SCHEDULER...");
+    printf(". ");
+    printf("SCHEDULER ");
     process_init();
-    printf("DONE\n");
+    printf(".\n");
+
     printf("Running setup...");
     setup();
     printf("DONE\n");
-    printf("Kernel booted in %dus\n", uuptime());
+    printf("Kernel booted in %dms\n", uuptime() / 1000);
 
     mutex_init(&test_mut);
-    create_kernel_thread(test, "TEST", 4);
+    //create_kernel_thread(test, "TEST", 4);
 
     while (1) {
-        if (i % 10 == 0)
+        if (i++ % 10 == 0)
             mutex_lock(&test_mut);
         else if (i % 10 == 9) 
             mutex_unlock(&test_mut);
-        printf("main %d\n", i++);
-        udelay(1000000);
+        loop();
+        udelay(5000000);
     }
 }

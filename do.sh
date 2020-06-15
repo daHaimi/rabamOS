@@ -5,10 +5,11 @@ ECHO="echo"
 CP="cp -R"
 MKDIR="mkdir -p"
 RM="rm -rf"
+CHMOD="chmod"
 KILL="kill"
 MD5SUM="md5sum"
 UNZIP="unzip"
-WGET=wget
+WGET="wget"
 OBJCOPY="arm-none-eabi-objcopy"
 EMU="/usr/local/bin/qemu-system-arm"
 VNC="vinagre"
@@ -31,7 +32,7 @@ CSRCFLAGS="-O2 -Wall -Wextra"
 LFLAGS="-ffreestanding -O2 -nostdlib"
 # PiLFS image
 IMAGE_FILE="pilfs-base-rpi1-20160824.img.xz"
-IMAGE_REPO="https://gitlab.com/gusco/pilfs-images/-/blob/master/"
+IMAGE_REPO="https://gitlab.com/gusco/pilfs-images/-/raw/master/"
 
 if [[ "${1}" == "build" ]]; then
   ${MKDIR} ${BIN_DIR}
@@ -48,7 +49,7 @@ if [[ "${1}" == "build" ]]; then
 fi
 
 if [[ "${1}" == "run" ]]; then
-  ${EMU} -m 1G -M raspi2 -serial stdio -kernel ${IMG_NAME}.elf -vnc :5 &
+  ${EMU} -m 256 -cpu arm1176 -M versatilepb -kernel ${IMG_NAME}.elf -vnc :5 &
   export RABAMOS_PID="$!" &&
     ${VNC} localhost:5905 && ${KILL} ${RABAMOS_PID}
 fi
@@ -69,18 +70,30 @@ if [[ "${1}" == "prepare" ]]; then
   fi
   # If mounted: unmount
   if grep -qs "${2}" /proc/mounts; then
-    if ! umount "${2}"; then
-      ${ECHO} "Unable to unmount device. Close every process using it and retry."
-      exit 3
-    fi
+    for dev in "${2}"{0,1,2,3,4,5,6,7,8,9}; do
+      if [[ -e ${dev} ]] && ! umount "${dev}"; then
+        ${ECHO} "Unable to unmount device ${dev}. Close every process using it and retry."
+        exit 3
+      fi
+    done
   fi
   if [[ ! -f "${DIST_DIR}/${IMAGE_FILE}" ]]; then
     ${MKDIR} ${DIST_DIR} && ${WGET} --directory-prefix=${DIST_DIR} "${IMAGE_REPO}${IMAGE_FILE}"
   fi
+  ${ECHO} "Downloading base image completed. Now flashing device ${2}"
   ${XZCAT} "${DIST_DIR}/${IMAGE_FILE}" | dd bs=4M of="${2}"
+  ${CHMOD} 0777 ${DIST_DIR} -R
 fi
 
 if [[ "${1}" == "deploy" ]]; then
+  if [[ -z "${2}" ]]; then
+    ${ECHO} "You need to pass the mount path to a SD card boot image."
+    ${ECHO} "There are following mounts available:"
+    for dir in "/media/${USER}/"*; do
+      ${ECHO} "- $(basename -- "${dir}")"
+    done
+    exit 4
+  fi
   export BOOT_DIR="/media/${USER}/${2}"
   ${CP} ${IMG_NAME}.img "${BOOT_DIR}/"
   (cd "${BOOT_DIR}/" && ${MD5SUM} ${IMG_NAME}.img >${IMG_NAME}.img.md5)

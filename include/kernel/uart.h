@@ -69,14 +69,10 @@ enum
     UART0_TDR    = (UART0_BASE + 0x8C),
 };
 
-void uart_init();
-
 uart_flags_t read_flags(void);
-
 void uart_putc(unsigned char c);
-
 unsigned char uart_getc();
-
 void uart_puts(const char* str);
-
+void uart_println(const char * str);
+void uart_printf(const char * fmt, ...);
 #endif

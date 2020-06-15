@@ -13,23 +13,7 @@
 #include <common/stdlib.h>
 #include <common/main.h>
 
-mutex_t test_mut;
-
-void test(void) {
-    int i = 0;
-    printf("starting thread %d\n", i++);
-    while (1) {
-        if (i++ % 10 == 0)
-            mutex_lock(&test_mut);
-        else if (i % 10 == 9) 
-            mutex_unlock(&test_mut);
-        printf("[t]\n");
-        udelay(5000000);
-    }
-}
-
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
-    int i = 0;
     // Declare as unused
     (void) r0;
     (void) r1;
@@ -37,32 +21,24 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
 
     mem_init((atag_t *)atags);
     gpu_init();
-    printf("GPU INITIALIZED . ");
+    uart_puts("GPU INITIALIZED . ");
 
-    printf("INTERRUPTS");
+    uart_puts("INTERRUPTS");
     interrupts_init();
-    printf(". ");
-    printf("TIMER ");
+    uart_puts(". ");
+    uart_puts("TIMER ");
     timer_init();
-    printf(". ");
-    printf("SCHEDULER ");
+    uart_puts(". ");
+    uart_puts("SCHEDULER ");
     process_init();
-    printf(".\n");
+    uart_puts(".\n");
 
-    printf("Running setup...");
+    uart_puts("Running setup...");
     setup();
-    printf("DONE\n");
-    printf("Kernel booted in %dms\n", uuptime() / 1000);
-
-    mutex_init(&test_mut);
-    //create_kernel_thread(test, "TEST", 4);
+    uart_puts("DONE\n");
+    uart_printf("Kernel booted in %dms\n", uuptime() / 1000);
 
     while (1) {
-        if (i++ % 10 == 0)
-            mutex_lock(&test_mut);
-        else if (i % 10 == 9) 
-            mutex_unlock(&test_mut);
         loop();
-        udelay(5000000);
     }
 }

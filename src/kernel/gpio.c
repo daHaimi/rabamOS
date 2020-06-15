@@ -1,7 +1,15 @@
 #include <kernel/gpio.h>
 #include <kernel/kerio.h>
 #include <kernel/uart.h>
+#include <kernel/interrupts.h>
+#include <kernel/process.h>
+#include <kernel/timer.h>
 #include <common/stdlib.h>
+
+uint8_t numGPIOInterrupts = 0;
+uint32_t interruptsReceived = 0;
+gpio_handler gpioHandler[GPIO_NUM_HANDLERS];
+uint32_t pwm_ctl = 0;
 
 void gpio_mode(uint8_t gpio, uint32_t mode) {
     // GPSEL1 is the first offset, so its offset is the offeset per selection number
@@ -13,12 +21,43 @@ void gpio_mode(uint8_t gpio, uint32_t mode) {
     if (mode > 0) {
         *(volatile uint32_t*)reg |=  (mode << ((gpio % 10) * 3));
     }
-    uart_printf("Setting register %s to ", itoa(reg, 16));
-    uart_printf("%s\n\r", itoa(mode << ((gpio % 10) * 3), 2));
+}
+void gpio_mode_pwm(uint8_t gpio) {
+    if (gpio != 12 && gpio != 13 && gpio != 18 && gpio != 19) {
+        // TODO: Maybe allow any pin via DMA later, for now only HW GPIO!
+        uart_println("Invalid GPIO for PWM usage");
+        return;
+    }
+    if (gpio < 14) {
+        // GPIO12 & 13 have PWM as Alt Fun 0
+        gpio_mode(gpio, GPIO_MODE_ALT0);
+    }
+    if (gpio < 20) {
+        // GPIO18 & 19 have PWM as Alt Fun 5
+        gpio_mode(gpio, GPIO_MODE_ALT5);
+    }
+    if (gpio == 13 || gpio == 18) {
+        pwm_ctl |= 1; // CTL: Enable Channel 1
+        *(volatile uint32_t*)PWM_RNG1 = PWM_RANGE;
+    }
+    if (gpio == 13 || gpio == 19) {
+        pwm_ctl |= (1 << 8); // CTL: Enable channel 2
+        *(volatile uint32_t*)PWM_RNG2 = PWM_RANGE;
+    }
+    *(volatile uint32_t*)PWM_CTL = pwm_ctl; // CTL: Enable Channel 1
 }
 
 void gpio_write(uint8_t gpio, uint8_t v) {
     *(volatile uint32_t*)(v == LOW ? GPCLR0 : GPSET0) = 1 << gpio;
+}
+
+void gpio_write_analog(uint8_t gpio, uint16_t v) {
+    if (gpio == 13 || gpio == 18) {
+        *(volatile uint32_t*)PWM_DAT1 = v;
+    }
+    if (gpio == 13 || gpio == 19) {
+        *(volatile uint32_t*)PWM_DAT2 = v;
+    }
 }
 
 void gpio_clr(uint8_t gpio) {
@@ -31,8 +70,7 @@ void gpio_clr(uint8_t gpio) {
  * @return LOW or HIGH
  */
 uint8_t gpio_read(uint8_t gpio) {
-    delay(1);
-    return (*(volatile uint32_t*)GPLEV0 >> gpio) & 1;
+    return ((*(volatile uint32_t*)GPLEV0) >> gpio) & 1;
 }
 
 /**
@@ -48,6 +86,69 @@ void gpio_set_pull(uint8_t gpio, uint8_t v) {
     delay(150);
     *(volatile uint32_t*)GPPUD = 0;
     *(volatile uint32_t*)GPPUDCLK0 = 0;
+}
+
+/**
+ * The handler for all GPIO Events
+ */
+static void gpio_irq_handler(void) {
+    for (uint8_t gpio = 0; gpio < 32; ++gpio) {
+        if (interruptsReceived & (1 << gpio)) {
+            /*
+             // FIXME: Thread destruction leads to scheduling deadlock, so no threads at the moment
+            uint16_t rnd = uuptime() % 1000;
+            char *thread = "GPIOXX-XXX";
+            thread[4] = gpio > 9 ? '1' : '0';
+            thread[5] = itoa(gpio % 10, 10)[0];
+            thread[7] = rnd > 99 ? '1' : '0';
+            thread[8] = rnd > 9 ? '0' + (rnd / 10) % 10 : '0';
+            thread[9] = '0' + rnd % 10;
+            if (gpioHandler[gpio]) {
+                create_kernel_thread(gpioHandler[gpio], thread, 10);
+            }
+             */
+            if (gpioHandler[gpio]) {
+                gpioHandler[gpio]();
+            }
+            interruptsReceived &= ~(1 << gpio);
+        }
+    }
+}
+
+/**
+ * Clearing is done in the handler
+ */
+static void gpio_irq_clearer(void) {
+    interruptsReceived = *(volatile uint32_t*)GPEDS0;
+    *(volatile uint32_t*)GPEDS0 &= 0xFFFFFFFF;
+}
+
+/**
+ * Register a GPIO interrupt and bind it o a function
+ * @param gpio The GPIO number
+ * @param mode The wath mode (rising/falling/both)
+ * @param func The callback function
+ */
+void gpio_interrupt(uint8_t gpio, uint8_t mode, gpio_handler func) {
+    // Falling edge
+    if (mode & 1) {
+        *(volatile uint32_t*)GPFEN0 |= 1 << gpio;
+    }
+    // Rising edge
+    if (mode & 2) {
+        *(volatile uint32_t*)GPREN0 |= 1 << gpio;
+    }
+    // Clear Event detection status
+    uart_println("Resetting event...");
+    *(volatile uint32_t*)GPEDS0 |= 1 << gpio;
+    // For the first activation of interrupts, activate the interrupt handler (IRQ 49)
+    if (numGPIOInterrupts == 0) {
+        uart_println("Register interrupt handler");
+        bzero(gpioHandler, sizeof(gpio_handler) * GPIO_NUM_HANDLERS);
+        register_irq_handler(GPIO_IRQ, gpio_irq_handler, gpio_irq_clearer);
+    }
+    uart_println("Setting callback function");
+    gpioHandler[gpio] = func;
 }
 
 // TODO: Next step would be a simple way to trigger GPIO-Interrupts.

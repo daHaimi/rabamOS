@@ -37,6 +37,7 @@ typedef void (*interrupt_clearer_f)(void);
 typedef enum {
     SYSTEM_TIMER_1 = 1,
     USB_CONTROLER = 9,
+    GPIO_IRQ = 49,
     ARM_TIMER = 64
 } irq_number_t;
 

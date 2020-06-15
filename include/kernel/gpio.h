@@ -3,6 +3,9 @@
 #ifndef GPIO_H
 #define GPIO_H
 
+// GPIO Interrupts - Handlers
+#define GPIO_NUM_HANDLERS 32
+
 // HIGH ansd LOW constants
 #define LOW 0
 #define HIGH 1
@@ -44,7 +47,7 @@
 #define GPFSEL2 (GPIO_BASE + 0x08) /* GPIO Function Selection 2 */
 #define GPSET0 (GPIO_BASE + 0x1C)  /* Set GPIO value HIGH*/
 #define GPCLR0 (GPIO_BASE + 0x28)  /* Set GPIO value LOW */
-#define GPLEV0 (GPIO_BASE + 0x2C)  /* Get GPIO value */
+#define GPLEV0 (GPIO_BASE + 0x34)  /* Get GPIO value */
 #define GPEDS0 (GPIO_BASE + 0x40)  /* Event detect status */
 #define GPREN0 (GPIO_BASE + 0x4C)  /* Rising Edge detection enable */
 #define GPFEN0 (GPIO_BASE + 0x58)  /* Falling Edge detection enable */
@@ -71,12 +74,37 @@
 #define EVENTS_RISING  2
 #define EVENTS_BOTH    3
 
+typedef void (*gpio_handler)(void);
 
-// Macros
+// PWM
+/*
+ * There are 4 pins available, that use PWM:
+ * GPIO12 has PWM0 as Alt Fun 0
+ * GPIO13 has PWM1 as Alt Fun 0
+ * GPIO18 has PWM0 as Alt Fun 5
+ * GPIO19 has PWM1 as Alt Fun 5
+ * GPIO40 and GPIO45 are connected to the Audio Jack
+ */
+#define PWM_BASE (PERIPHERAL_BASE + PWM_OFFSET)
+#define PWM_CTL  (PWM_BASE + 0x00)
+#define PWM_STA  (PWM_BASE + 0x04)
+#define PWM_DMAC (PWM_BASE + 0x08)
+#define PWM_RNG1 (PWM_BASE + 0x10)
+#define PWM_DAT1 (PWM_BASE + 0x14)
+#define PWM_FIF1 (PWM_BASE + 0x18)
+#define PWM_RNG2 (PWM_BASE + 0x20)
+#define PWM_DAT2 (PWM_BASE + 0x24)
+
+#define PWM_RANGE 1024
+
+// Forward declarations
 void gpio_mode(uint8_t gpio, uint32_t mode);
+void gpio_mode_pwm(uint8_t gpio);
 void gpio_write(uint8_t gpio, uint8_t v);
+void gpio_write_analog(uint8_t gpio, uint16_t v);
 void gpio_clr(uint8_t gpio);
 uint8_t gpio_read(uint8_t gpio);
 void gpio_set_pull(uint8_t gpio, uint8_t v);
+void gpio_interrupt(uint8_t gpio, uint8_t mode, gpio_handler func);
 
 #endif

@@ -11,9 +11,10 @@
 #define SYSTEM_TIMER_OFFSET 0x3000
 #define INTERRUPTS_OFFSET 0xB000
 #define MAILBOX_OFFSET 0xB880
+#define GPIO_OFFSET  0x200000
 #define UART0_OFFSET 0x201000
-#define GPIO_OFFSET 0x200000
-#define EMMC_OFFSET 0x300000
+#define PWM_OFFSET   0x20C000
+#define EMMC_OFFSET  0x300000
 
 void mmio_write(uint32_t reg, uint32_t data);
 uint32_t mmio_read(uint32_t reg);

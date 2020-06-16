@@ -27,8 +27,45 @@ to change it in `do.sh`.
 Installation on ubuntu/mint: compiler and VM
 > `sudo apt install gcc-arm-none-eabi vinagre unzip wget`
 
-# Prepared drivers and base image
+### Prepared drivers and base image
 SD Card based on PiLFS: https://gitlab.com/gusco/pilfs-images/
+
+## Start to implement
+You can simply start to implement your own code through the Arduino-like methods `void setup(void)` and `void loop(void)` in `src/common/main.c`.
+
+### Example:
+```c
+#include <kernel/gpio.h>
+#include <kernel/uart.h>
+#include <kernel/timer.h>
+#include <common/stdlib.h>
+
+uint16_t led_state = 1;
+uint32_t nextTimer = 0;
+
+void iButton() {
+    if (uuptime() < nextTimer) return;
+    nextTimer = uuptime() + 100000;
+    led_state = ++led_state % 2; // Because LOW = 0 and HIGH = 1
+    gpio_write(GPIO18, led_state);
+}
+
+void setup() {
+    // LED
+    gpio_mode(GPIO18, GPIO_MODE_OUT);
+    gpio_write(GPIO18, LOW);
+
+    // Button input
+    gpio_mode(GPIO17, GPIO_MODE_IN);
+    gpio_set_pull(GPIO17, HIGH); // Pull-up
+    gpio_interrupt(GPIO17, EVENTS_FALLING, iButton); // bind hardware interrupt to function iButton
+}
+
+void loop() {
+    uart_println("Running for %dms\n", uuptime() / 1000);
+    usleep(1000000);
+}
+```
 
 ## Building
 
@@ -40,5 +77,20 @@ The build process is done using do.sh
 > `./do.sh run`
 ### Prepare the SD card with PiLFS
 > `./do.sh prepare`
+### Deploy the kernel to the SD card
+Show all sutitable mounted directories:
+> `./do.sh deploy <MountName>`
+
+Deploy to the mounted SD card:
+> `./do.sh deploy <MountName>`
+
 ### Clean all object and image files
 > `./do.sh clean`
+
+## Roadmap
+The next steps will be continouusly updated
+* [ ] Getting the Scheduler handling geting back to the main thread after the only additional thread gets destroyed
+* [ ] Handling hardaware interrupts in separate threads to minimize the impact
+* [ ] Porting a C graphics library (suggestions welcome)
+* [ ] Porting Pololu A4988 Stepper driver library
+* [ ] Porting graphics handling for 3D Printing (GCode) and Laser engraving/cutting (HPGL)

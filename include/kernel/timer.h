@@ -4,12 +4,22 @@
 #define TIMER_H
 
 #define SYSTEM_TIMER_BASE (SYSTEM_TIMER_OFFSET + PERIPHERAL_BASE)
+#define TIMER_CLO         0x4
+
+typedef unsigned int useconds_t;
+struct timer_wait {
+    uint32_t trigger_value;
+    int rollover;
+};
+
 
 void timer_init(void);
 
-void timer_set(uint32_t usecs);
-void udelay(uint32_t usecs);
-uint32_t uuptime();
+void timer_set(useconds_t usecs);
+void udelay(useconds_t usecs);
+struct timer_wait register_timer(useconds_t usec);
+int compare_timer(struct timer_wait tw);
+useconds_t uuptime();
 
 typedef struct {
     uint8_t timer0_matched: 1;
@@ -28,5 +38,14 @@ typedef struct {
     uint32_t timer2;
     uint32_t timer3;
 } timer_registers_t;
+
+#define TIMEOUT_WAIT(stop_if_true, usec)         \
+do {							                 \
+	struct timer_wait tw = register_timer(usec); \
+	do {						                 \
+		if(stop_if_true)			             \
+			break;				                 \
+	} while(!compare_timer(tw));			     \
+} while(0);
 
 #endif

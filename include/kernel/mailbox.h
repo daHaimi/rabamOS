@@ -4,12 +4,14 @@
 #ifndef MAILBOX_H
 #define MAILBOX_H
 
-#define MAILBOX_BASE PERIPHERAL_BASE + MAILBOX_OFFSET
+#define MAILBOX_BASE (PERIPHERAL_BASE + MAILBOX_OFFSET)
 #define MAIL0_READ (((mail_message_t *)(0x00 + MAILBOX_BASE)))
 #define MAIL0_STATUS (((mail_status_t *)(0x18 + MAILBOX_BASE)))
 #define MAIL0_WRITE (((mail_message_t *)(0x20 + MAILBOX_BASE)))
 #define PROPERTY_CHANNEL 8
 #define FRAMEBUFFER_CHANNEL 1
+
+#define MBOX_SUCCESS	0x80000000
 
 typedef struct {
     uint8_t channel: 4;

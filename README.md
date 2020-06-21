@@ -89,8 +89,11 @@ Deploy to the mounted SD card:
 
 ## Roadmap
 The next steps will be continouusly updated
-* [ ] Getting the Scheduler handling geting back to the main thread after the only additional thread gets destroyed
-* [ ] Handling hardaware interrupts in separate threads to minimize the impact
+* [ ] Getting the Scheduler handling getting back to the main thread after the only additional thread gets destroyed
+* [ ] Handling hardware interrupts in separate threads to minimize the impact
 * [ ] Porting a C graphics library (suggestions welcome)
 * [ ] Porting Pololu A4988 Stepper driver library
 * [ ] Porting graphics handling for 3D Printing (GCode) and Laser engraving/cutting (HPGL)
+
+Untested but implemented:
+* SD Card block device reading (No FAT support yet)

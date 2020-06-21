@@ -22,7 +22,7 @@ mail_message_t mailbox_read(int channel) {
 void mailbox_send(mail_message_t msg, int channel) {
     mail_status_t stat;
     msg.channel = channel;
-    
+
 
     // Make sure you can send mail
     do {

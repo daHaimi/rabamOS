@@ -17,7 +17,13 @@ void memcpy(void * dest, const void * src, int bytes);
 void bzero(void * dest, int bytes);
 void memset(void * dest, uint8_t c, int bytes);
 
+// String functions
+char * strcat(char * out, const char * str);
+char * strncat(char * out, const char * str, uint32_t len);
+uint32_t strlen(const char * str);
 char * itoa(int i, int base);
 int atoi(char * num);
+uint32_t ob_puts(char ** ob, uint32_t obCur, char * str);
+char * sprintf(const char * fmt, ...);
 
 #endif

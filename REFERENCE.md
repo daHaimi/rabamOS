@@ -56,7 +56,7 @@ Parses a number out of a string.
 ## GPIO
 Functions included in `<kernel/gpio.h>` to allow simple handling of [GPIO](https://en.wikipedia.org/wiki/General-purpose_input/output) pins.
 
-### void init_pwm(void)
+### void init_gpio(void)
 Initializes the [PWM](https://en.wikipedia.org/wiki/Pulse-width_modulation) clock. Needs to be called before other PWM functions are used.
 
 ### void gpio_mode(uint8_t gpio, uint32_t mode)

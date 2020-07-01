@@ -101,7 +101,7 @@ typedef void (*gpio_handler)(void);
 #define PWM_RANGE 1024
 
 // Forward declarations
-void init_pwm();
+void init_gpio();
 void gpio_mode(uint8_t gpio, uint32_t mode);
 void gpio_mode_pwm(uint8_t gpio);
 void gpio_write(uint8_t gpio, uint8_t v);

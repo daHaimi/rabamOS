@@ -1,19 +1,27 @@
+#include <kernel/mem.h>
 #include <kernel/gpio.h>
 #include <kernel/kerio.h>
 #include <kernel/uart.h>
 #include <kernel/interrupts.h>
 #include <kernel/process.h>
 #include <kernel/timer.h>
+#include <kernel/mutex.h>
+#include <kernel/rand.h>
 #include <common/stdlib.h>
 
 uint8_t numGPIOInterrupts = 0;
 uint32_t interruptsReceived = 0;
+uint32_t launchThreads = 0x00000000;
 gpio_handler gpioHandler[GPIO_NUM_HANDLERS];
 uint32_t pwm_ctl = 0;
 
 #define CLK_BASE 0x5a000000
 
-void init_pwm() {
+void init_gpio() {
+    // First interrupt binding to -1
+    for (uint8_t i = 0; i < GPIO_NUM_HANDLERS; i++) {
+        gpioHandler[i] = 0;
+    }
     *(volatile uint32_t*)CM_PWMCTL = CLK_BASE | ~0x10; // Turn off enable flag.
     while(*(volatile uint32_t*)CM_PWMCTL & 0x80); // Wait for busy flag to turn off.
     *(volatile uint32_t*)CM_PWMDIV = CLK_BASE | (5 << 12); // Configure divider.
@@ -102,23 +110,14 @@ void gpio_set_pull(uint8_t gpio, uint8_t v) {
 /**
  * The handler for all GPIO Events
  */
+uint8_t started = 0;
 static void gpio_irq_handler(void) {
     for (uint8_t gpio = 0; gpio < 32; ++gpio) {
         if (interruptsReceived & (1 << gpio)) {
-            /*
-             // FIXME: Thread destruction leads to scheduling deadlock, so no threads at the moment
-            uint16_t rnd = uuptime() % 1000;
-            char *thread = "GPIOXX-XXX";
-            thread[4] = gpio > 9 ? '1' : '0';
-            thread[5] = itoa(gpio % 10, 10)[0];
-            thread[7] = rnd > 99 ? '1' : '0';
-            thread[8] = rnd > 9 ? '0' + (rnd / 10) % 10 : '0';
-            thread[9] = '0' + rnd % 10;
-            if (gpioHandler[gpio]) {
-                create_kernel_thread(gpioHandler[gpio], thread, 10);
-            }
-             */
-            if (gpioHandler[gpio]) {
+            if (gpioHandler[gpio] && ! started) {
+                uart_puts("{GPIO}");
+                //started = 1;
+                //create_kernel_thread(gpioHandler[gpio], "GPIO", 4);
                 gpioHandler[gpio]();
             }
             interruptsReceived &= ~(1 << gpio);
@@ -161,6 +160,3 @@ void gpio_interrupt(uint8_t gpio, uint8_t mode, gpio_handler func) {
     uart_println("Setting callback function");
     gpioHandler[gpio] = func;
 }
-
-// TODO: Next step would be a simple way to trigger GPIO-Interrupts.
-// The basic Idea is rolled out here: https://www.raspberrypi.org/forums/viewtopic.php?t=248813

@@ -1,0 +1,7 @@
+#ifndef RABAMOS_NEMA_H
+#define RABAMOS_NEMA_H
+
+#define STEPPER_RESOLUTION 200
+#define STEPPER_STEP_ANGLE 1.8
+
+#endif //RABAMOS_NEMA_H

@@ -127,6 +127,7 @@ void remove_##nodeType (nodeType##_list_t * list, struct nodeType * node) {  \
         } else {                                                            \
             node->next##nodeType = node->prev##nodeType;                    \
         }                                                                   \
+        list->size -= 1;                                                    \
     }                                                                       \
     node->container = NULL;                                                 \
     spin_unlock(&list->lock);                                                 \

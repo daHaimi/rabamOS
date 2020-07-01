@@ -7,8 +7,6 @@
 #include <kernel/uart.h>
 #include <common/stdlib.h>
 
-uint8_t helper = 0;
-
 static uint32_t next_proc_num = 1;
 #define NEW_PID next_proc_num++;
 
@@ -33,14 +31,11 @@ void schedule(void) {
         ENABLE_INTERRUPTS();
         return;
     }
-    if (helper) uart_printf("NumThreads: %d\n", size_pcb_list(&run_queue));
 
     // Get the next thread to run.  For now we are using round-robin
-
+    // uart_printf("(%d, %d)", size_pcb_list(&run_queue), size_pcb_list(&all_proc_list));
     new_thread = pop_pcb_list(&run_queue);
-    if (helper) uart_printf("New: %s, ", new_thread->proc_name);
     old_thread = current_process;
-    if (helper) uart_printf("Old: %s\n", old_thread->proc_name);
     current_process = new_thread;
 
     // Put the current thread back in the run queue
@@ -69,7 +64,6 @@ void process_init(void) {
 
     // Set the timer to go off after 10 ms
     timer_set(10000);
-
 }
 
 static void reap(void) {
@@ -77,22 +71,22 @@ static void reap(void) {
     process_control_block_t * new_thread, * old_thread;
 
     // If nothing on the run queue, there is nothing to do now. just loop
-    while (size_pcb_list(&run_queue) == 0);
+    if (size_pcb_list(&run_queue) == 0) return;
 
     // Get the next thread to run.  For now we are using round-robin
     new_thread = pop_pcb_list(&run_queue);
     old_thread = current_process;
+    // Of only the main thread is left, use that one
     current_process = new_thread;
-
-    // remove from all threads list
-    remove_pcb(&all_proc_list, old_thread);
 
     // Free the resources used by the old process. Technically, we are using dangling pointers here,
     // but since interrupts are disabled and we only have one core, it should still be fine
     free_page(old_thread->stack_page);
     kfree(old_thread);
 
-    helper = 1;
+    // remove from all threads list
+    remove_pcb(&all_proc_list, old_thread);
+
     // Context Switch
     switch_to_thread(old_thread, new_thread);
 }

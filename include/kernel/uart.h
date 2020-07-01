@@ -75,4 +75,5 @@ unsigned char uart_getc();
 void uart_puts(const char* str);
 void uart_println(const char * str);
 void uart_printf(const char * fmt, ...);
+
 #endif

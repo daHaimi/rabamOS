@@ -2,6 +2,7 @@
 #include <kernel/gpu.h>
 #include <kernel/mem.h>
 #include <kernel/mailbox.h>
+#include <common/main.h>
 
 typedef struct {
     uint32_t width;
@@ -21,8 +22,8 @@ fb_init_t fbinit __attribute__((aligned(16)));
 int framebuffer_init(void) {
     mail_message_t msg;
 
-    fbinit.width = 640;
-    fbinit.height = 480;
+    fbinit.width = SCREEN_WIDTH;
+    fbinit.height = SCREEN_HEIGHT;
     fbinit.vwidth = fbinit.width;
     fbinit.vheight = fbinit.height;
     fbinit.depth = COLORDEPTH;

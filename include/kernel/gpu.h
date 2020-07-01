@@ -12,9 +12,17 @@ typedef struct pixel {
     uint8_t blue;
 } pixel_t;
 
+typedef struct image {
+    uint16_t 	  width;
+    uint16_t 	  height;
+    uint8_t 	  bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */
+    char * pixel_data;
+} image_t;
+
 void gpu_init(void);
 
 void write_pixel(uint32_t x, uint32_t y, const pixel_t * pixel);
+void draw_image(image_t *img, uint16_t x, uint16_t y);
 
 void gpu_putc(char c);
 

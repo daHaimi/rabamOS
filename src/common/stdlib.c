@@ -1,5 +1,7 @@
+#include <kernel/mem.h>
 #include <common/stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 __inline__ uint32_t div(uint32_t dividend, uint32_t divisor) {
     uint32_t denom=divisor;
@@ -55,6 +57,35 @@ void memset(void * dest, uint8_t c, int bytes) {
     while (bytes--) {
         *d++ = c;
     }
+}
+
+char * strcat(char * out, const char * str) {
+    char* cur = out;
+    while (*cur != '\0')
+        cur++;
+    while (*str != '\0')
+        *(cur++) = *(str++);
+    *cur = '\0';
+    return out;
+}
+
+char * strncat(char * out, const char * str, uint32_t len) {
+    char* cur = out;
+    while (*cur != '\0')
+        cur++;
+    while (*str != '\0' && (len--) > 0)
+        *(cur++) = *(str++);
+    *cur = '\0';
+    return out;
+}
+
+uint32_t strlen(const char * str) {
+    uint32_t size = 0;
+    while (*str != 0) {
+        str++;
+        size++;
+    }
+    return size;
 }
 
 char * itoa(int num, int base) {
@@ -130,4 +161,40 @@ int atoi(char * num) {
     }
 
     return res;
+}
+
+uint32_t ob_puts(char ** ob, uint32_t obCur, char * str) {
+    while (*(str++) != '\0') {
+        (*ob)[obCur++] = *(str++);
+    }
+    return obCur;
+}
+
+char * sprintf(const char * fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    char * out = "";
+
+    for (; *fmt != '\0'; fmt++) {
+        if (*fmt == '%') {
+            switch (*(++fmt)) {
+                case '%':
+                    strcat(out, "%");
+                    break;
+                case 'd':
+                    strcat(out, itoa(va_arg(args, int), 10));
+                    break;
+                case 'x':
+                    strcat(out, itoa(va_arg(args, int), 16));
+                    break;
+                case 's':
+                    strcat(out, va_arg(args, char *));
+                    break;
+            }
+        } else strncat(out, fmt, 1);
+    }
+
+    va_end(args);
+    return out;
 }

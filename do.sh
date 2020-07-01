@@ -20,6 +20,7 @@ BIN_DIR="bin"
 DIST_DIR="dist"
 BUILD_DIR="build"
 SRC_DIR="src"
+LIB_SRC="${SRC_DIR}/lib"
 COMMON_SRC="${SRC_DIR}/common"
 KER_SRC="${SRC_DIR}/kernel"
 KER_HEAD="include"
@@ -27,9 +28,9 @@ IMG_NAME="kernel"
 # Arguments and directives
 CPU=arm1176jzf-s
 DIRECTIVES=" -D MODEL_1"
-CFLAGS="-mcpu=${CPU} -fpic -ffreestanding ${DIRECTIVES}"
+CFLAGS="-mcpu=${CPU} -fpic -ffreestanding -trigraphs ${DIRECTIVES}"
 CSRCFLAGS="-O2 -Wall -Wextra"
-LFLAGS="-ffreestanding -O2 -nostdlib"
+LFLAGS="-ffreestanding -O2 -nostdlib -trigraphs"
 # PiLFS image
 IMAGE_FILE="pilfs-base-rpi1-20160824.img.xz"
 IMAGE_REPO="https://gitlab.com/gusco/pilfs-images/-/raw/master/"
@@ -49,7 +50,7 @@ if [[ "${1}" == "build" ]]; then
 fi
 
 if [[ "${1}" == "run" ]]; then
-  ${EMU} -m 256 -cpu arm1176 -M versatilepb -kernel ${IMG_NAME}.elf -vnc :5 &
+  ${EMU} -cpu arm1176 -m 256 -M versatilepb -kernel ${IMG_NAME}.elf -vnc :5 &
   export RABAMOS_PID="$!" &&
     ${VNC} localhost:5905 && ${KILL} ${RABAMOS_PID}
 fi

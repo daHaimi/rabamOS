@@ -7,8 +7,8 @@
 // Old thread should be put back in run queue before this is called
 switch_to_thread:
     // Save the current thread's state
-    push    {lr}     // Push stack pointer and link register
-    push    {lr}
+    push    {lr}        // Push stack pointer and link register
+    push    {sp}
     mrs     r12, cpsr   // Get the current program state register
     push    {r0-r12}    // Save all general purpose registers and program state
     str     sp, [r0]    // Store the stack pointer into the saved_state field of the current process

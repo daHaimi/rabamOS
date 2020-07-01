@@ -43,7 +43,7 @@ You can simply start to implement your own code through the Arduino-like methods
 uint16_t led_state = 1;
 uint32_t nextTimer = 0;
 
-void iButton() {
+void runTilStop() {
     if (uuptime() < nextTimer) return;
     nextTimer = uuptime() + 100000;
     led_state = ++led_state % 2; // Because LOW = 0 and HIGH = 1
@@ -58,7 +58,7 @@ void setup() {
     // Button input
     gpio_mode(GPIO17, GPIO_MODE_IN);
     gpio_set_pull(GPIO17, HIGH); // Pull-up
-    gpio_interrupt(GPIO17, EVENTS_FALLING, iButton); // bind hardware interrupt to function iButton
+    gpio_interrupt(GPIO17, EVENTS_FALLING, iButton); // bind hardware interrupt to function runTilStop
 }
 
 void loop() {

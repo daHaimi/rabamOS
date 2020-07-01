@@ -66,3 +66,11 @@ void gpu_init(void) {
         }
     }
 }
+
+void draw_image(image_t *img, uint16_t x, uint16_t y) {
+    for (uint16_t line = y; line < img->height; line++) {
+        for (uint16_t col = x; col < img->width; col++) {
+            write_pixel(col + x, line + y, (pixel_t *)(img->pixel_data + ((line * img->width) + col) * 3));
+        }
+    }
+}

@@ -9,7 +9,7 @@
  */
 static void heap_init(uint32_t heap_start);
 /**
- * impliment kmalloc as a linked list of allocated segments.
+ * implement kmalloc as a linked list of allocated segments.
  * Segments should be 4 byte aligned.
  * Use best fit algorithm to find an allocation
  */
@@ -19,7 +19,6 @@ typedef struct heap_segment{
     uint32_t is_allocated;
     uint32_t segment_size;  // Includes this header
 } heap_segment_t;
-
 static heap_segment_t * heap_segment_list_head;
 
 /**
@@ -73,7 +72,6 @@ void mem_init(atag_t * atags) {
         all_pages_array[i].flags.allocated = 0;
         append_page_list(&free_pages, &all_pages_array[i]);
     }
-
 
     // Initialize the heap
     heap_init(page_array_end);

@@ -32,9 +32,12 @@ void schedule(void) {
         return;
     }
 
+    //uart_printf("Size: %d, ", size_pcb_list(&run_queue));
+
     // Get the next thread to run.  For now we are using round-robin
     // uart_printf("(%d, %d)", size_pcb_list(&run_queue), size_pcb_list(&all_proc_list));
     new_thread = pop_pcb_list(&run_queue);
+    //uart_printf("starting: %s, ", new_thread->proc_name);
     old_thread = current_process;
     current_process = new_thread;
 
@@ -76,16 +79,17 @@ static void reap(void) {
     // Get the next thread to run.  For now we are using round-robin
     new_thread = pop_pcb_list(&run_queue);
     old_thread = current_process;
+    uart_printf("[Reaping %s]", old_thread->proc_name);
     // Of only the main thread is left, use that one
     current_process = new_thread;
+
+    // remove from all threads list
+    remove_pcb(&all_proc_list, old_thread);
 
     // Free the resources used by the old process. Technically, we are using dangling pointers here,
     // but since interrupts are disabled and we only have one core, it should still be fine
     free_page(old_thread->stack_page);
     kfree(old_thread);
-
-    // remove from all threads list
-    remove_pcb(&all_proc_list, old_thread);
 
     // Context Switch
     switch_to_thread(old_thread, new_thread);
@@ -111,6 +115,8 @@ void create_kernel_thread(kthread_function_f thread_func, char * name, int name_
     new_proc_state->lr = (uint32_t)thread_func;     // lr is used as return address in switch_to_thread
     new_proc_state->sp = (uint32_t)reap;            // When the thread function returns, this reaper routine will clean it up
     new_proc_state->cpsr = 0x13 | (8 << 1);         // Sets the thread up to run in supervisor mode with irqs only
+
+    uart_printf("{%s|%x}", name, (uint32_t)pcb);
 
     // add the thread to the lists
     append_pcb_list(&all_proc_list, pcb);

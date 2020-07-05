@@ -14,6 +14,7 @@ uint32_t interruptsReceived = 0;
 uint32_t launchThreads = 0x00000000;
 gpio_handler gpioHandler[GPIO_NUM_HANDLERS];
 uint32_t pwm_ctl = 0;
+mutex_t * gpioMutex[GPIO_NUM_HANDLERS];
 
 #define CLK_BASE 0x5a000000
 
@@ -21,6 +22,7 @@ void init_gpio() {
     // First interrupt binding to -1
     for (uint8_t i = 0; i < GPIO_NUM_HANDLERS; i++) {
         gpioHandler[i] = 0;
+        mutex_init(gpioMutex[i]);
     }
     *(volatile uint32_t*)CM_PWMCTL = CLK_BASE | ~0x10; // Turn off enable flag.
     while(*(volatile uint32_t*)CM_PWMCTL & 0x80); // Wait for busy flag to turn off.
@@ -110,15 +112,17 @@ void gpio_set_pull(uint8_t gpio, uint8_t v) {
 /**
  * The handler for all GPIO Events
  */
-uint8_t started = 0;
 static void gpio_irq_handler(void) {
-    for (uint8_t gpio = 0; gpio < 32; ++gpio) {
+    for (uint8_t gpio = 0; gpio < GPIO_NUM_HANDLERS; ++gpio) {
         if (interruptsReceived & (1 << gpio)) {
-            if (gpioHandler[gpio] && ! started) {
-                uart_puts("{GPIO}");
-                //started = 1;
-                //create_kernel_thread(gpioHandler[gpio], "GPIO", 4);
+            if (gpioHandler[gpio]) {
+                mutex_lock(gpioMutex[gpio]);
+                //char * gpioName = "GPIO***";
+                //divmod_t div = divmod(prandChar(), 1000);
+                //memcpy((gpioName + 4), itoa(div.mod, 10), 3);
+                //create_kernel_thread(gpioHandler[gpio], gpioName, strlen(gpioName));
                 gpioHandler[gpio]();
+                mutex_unlock(gpioMutex[gpio]);
             }
             interruptsReceived &= ~(1 << gpio);
         }

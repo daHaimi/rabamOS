@@ -198,9 +198,6 @@ static char *err_irpts[] = { "CMD_TIMEOUT", "CMD_CRC", "CMD_END_BIT", "CMD_INDEX
                              "AUTO_CMD12", "ADMA", "TUNING", "RSVD" };
 #endif
 
-int sd_read(struct block_device *, uint8_t *, uint64_t buf_size, uint32_t);
-int sd_write(struct block_device *, uint8_t *, uint64_t buf_size, uint32_t);
-
 static uint32_t sd_commands[] = {
         SD_CMD_INDEX(0),
         SD_CMD_RESERVED(1),
@@ -386,5 +383,10 @@ static uint32_t sd_acommands[] = {
 #define SD_RESET_ALL            (1 << 24)
 
 #define SD_GET_CLOCK_DIVIDER_FAIL	0xffffffff
+
+
+int sd_card_init(struct block_device **dev);
+int sd_read(struct block_device *, uint8_t *, uint64_t buf_size, uint32_t);
+int sd_write(struct block_device *, uint8_t *, uint64_t buf_size, uint32_t);
 
 #endif

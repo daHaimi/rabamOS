@@ -6,5 +6,6 @@
 
 void setup();
 void loop();
+void tick();
 
 #endif //RABAMOS_MAIN_H

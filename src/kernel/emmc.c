@@ -706,13 +706,13 @@ int sd_card_init(struct block_device **dev) {
         uart_printf("EMMC: fatal error, sd_commands of incorrect size: %i"
                " expected %i\n", sizeof(sd_commands),
                64 * sizeof(uint32_t));
-        return -1;
+        return 1;
     }
     if(sizeof(sd_acommands) != (64 * sizeof(uint32_t))) {
         uart_printf("EMMC: fatal error, sd_acommands of incorrect size: %i"
                " expected %i\n", sizeof(sd_acommands),
                64 * sizeof(uint32_t));
-        return -1;
+        return 1;
     }
 
     // Power cycle the card to ensure its in its startup state
@@ -734,7 +734,7 @@ int sd_card_init(struct block_device **dev) {
 
     if(hci_ver < 2) {
         uart_printf("EMMC: only SDHCI versions >= 3.0 are supported\n");
-		return -1;
+		return 1;
     }
 
     // Reset the controller
@@ -751,7 +751,7 @@ int sd_card_init(struct block_device **dev) {
     if((mmio_read(EMMC_BASE + EMMC_CONTROL1) & (0x7 << 24)) != 0)
     {
         uart_printf("EMMC: controller did not reset properly\n");
-        return -1;
+        return 2;
     }
 #ifdef EMMC_DEBUG
     uart_printf("EMMC: control0: %08x, control1: %08x, control2: %08x\n",
@@ -775,7 +775,7 @@ int sd_card_init(struct block_device **dev) {
     uint32_t status_reg = mmio_read(EMMC_BASE + EMMC_STATUS);
     if((status_reg & (1 << 16)) == 0) {
         uart_printf("EMMC: no card inserted\n");
-        return -1;
+        return 2;
     }
 #ifdef EMMC_DEBUG
     uart_printf("EMMC: status: %08x\n", status_reg);
@@ -802,7 +802,7 @@ int sd_card_init(struct block_device **dev) {
     uint32_t f_id = sd_get_clock_divider(base_clock, SD_CLOCK_ID);
     if(f_id == SD_GET_CLOCK_DIVIDER_FAIL) {
         uart_printf("EMMC: unable to get a valid clock divider for ID frequency\n");
-        return -1;
+        return 3;
     }
     control1 |= f_id;
 
@@ -811,7 +811,7 @@ int sd_card_init(struct block_device **dev) {
     TIMEOUT_WAIT(mmio_read(EMMC_BASE + EMMC_CONTROL1) & 0x2, 0x1000000);
     if((mmio_read(EMMC_BASE + EMMC_CONTROL1) & 0x2) == 0) {
         uart_printf("EMMC: controller's clock did not stabilise within 1 second\n");
-        return -1;
+        return 2;
     }
 #ifdef EMMC_DEBUG
     uart_printf("EMMC: control0: %08x, control1: %08x\n",
@@ -853,7 +853,7 @@ int sd_card_init(struct block_device **dev) {
 
     if(ret == 0x0) {
         uart_printf("EMMC: Failed preparing device\n");
-        return -1;
+        return 2;
     }
 
     memset(ret, 0, sizeof(struct emmc_block_dev));
@@ -874,7 +874,7 @@ int sd_card_init(struct block_device **dev) {
     sd_issue_command(ret, GO_IDLE_STATE, 0, 500000);
     if(FAIL(ret)) {
         uart_printf("SD: no CMD0 response\n");
-        return -1;
+        return 2;
     }
 
     // Send CMD8 to the card
@@ -890,19 +890,19 @@ int sd_card_init(struct block_device **dev) {
         v2_later = 0;
     else if(CMD_TIMEOUT(ret)) {
         if(sd_reset_cmd() == -1)
-            return -1;
+            return 2;
         mmio_write(EMMC_BASE + EMMC_INTERRUPT, SD_ERR_MASK_CMD_TIMEOUT);
         v2_later = 0;
     } else if(FAIL(ret)) {
         uart_printf("SD: failure sending CMD8 (%08x)\n", ret->last_interrupt);
-        return -1;
+        return 3;
     } else {
         if((ret->last_r0 & 0xfff) != 0x1aa) {
             uart_printf("SD: unusable card\n");
 #ifdef EMMC_DEBUG
             uart_printf("SD: CMD8 response %08x\n", ret->last_r0);
 #endif
-            return -1;
+            return 1;
         } else
             v2_later = 1;
     }
@@ -917,14 +917,14 @@ int sd_card_init(struct block_device **dev) {
     if(!TIMEOUT(ret)) {
         if(CMD_TIMEOUT(ret)) {
             if(sd_reset_cmd() == -1)
-                return -1;
+                return 2;
             mmio_write(EMMC_BASE + EMMC_INTERRUPT, SD_ERR_MASK_CMD_TIMEOUT);
         } else {
             uart_printf("SD: SDIO card detected - not currently supported\n");
 #ifdef EMMC_DEBUG
             uart_printf("SD: CMD5 returned %08x\n", ret->last_r0);
 #endif
-            return -1;
+            return 3;
         }
     }
 
@@ -935,7 +935,7 @@ int sd_card_init(struct block_device **dev) {
     sd_issue_command(ret, ACMD(41), 0, 500000);
     if(FAIL(ret)) {
         uart_printf("SD: inquiry ACMD41 failed\n");
-        return -1;
+        return 2;
     }
 #ifdef EMMC_DEBUG
     uart_printf("SD: inquiry ACMD41 returned %08x\n", ret->last_r0);
@@ -956,7 +956,7 @@ int sd_card_init(struct block_device **dev) {
         sd_issue_command(ret, ACMD(41), 0x00ff8000 | v2_flags, 500000);
         if(FAIL(ret)) {
             uart_printf("SD: error issuing ACMD41\n");
-            return -1;
+            return 2;
         }
 
         if((ret->last_r0 >> 31) & 0x1) {
@@ -978,7 +978,7 @@ int sd_card_init(struct block_device **dev) {
     }
 
 #ifdef EMMC_DEBUG
-    uart_printf("SD: card identified: OCR: %04x, 1.8v support: %i, SDHC support: %i\n",
+    uart_printf("SD: card identified: OCR: %04x, 1.8v support: %d, SDHC support: %d\n",
 			ret->card_ocr, ret->card_supports_18v, ret->card_supports_sdhc);
 #endif
 
@@ -1071,7 +1071,7 @@ int sd_card_init(struct block_device **dev) {
     sd_issue_command(ret, ALL_SEND_CID, 0, 500000);
     if(FAIL(ret)) {
         uart_printf("SD: error sending ALL_SEND_CID\n");
-        return -1;
+        return 2;
     }
     uint32_t card_cid_0 = ret->last_r0;
     uint32_t card_cid_1 = ret->last_r1;
@@ -1113,28 +1113,28 @@ int sd_card_init(struct block_device **dev) {
         uart_printf("SD: CRC error\n");
         kfree(ret);
         kfree(dev_id);
-        return -1;
+        return 3;
     }
 
     if(illegal_cmd) {
         uart_printf("SD: illegal command\n");
         kfree(ret);
         kfree(dev_id);
-        return -1;
+        return 3;
     }
 
     if(error) {
         uart_printf("SD: generic error\n");
         kfree(ret);
         kfree(dev_id);
-        return -1;
+        return 1;
     }
 
     if(!ready) {
         uart_printf("SD: not ready for data\n");
         kfree(ret);
         kfree(dev_id);
-        return -1;
+        return 2;
     }
 
 #ifdef EMMC_DEBUG
@@ -1145,17 +1145,17 @@ int sd_card_init(struct block_device **dev) {
     if(FAIL(ret)) {
         uart_printf("SD: error sending CMD7\n");
         kfree(ret);
-        return -1;
+        return 2;
     }
 
     uint32_t cmd7_resp = ret->last_r0;
     status = (cmd7_resp >> 9) & 0xf;
 
     if((status != 3) && (status != 4)) {
-        uart_printf("SD: invalid status (%i)\n", status);
+        uart_printf("SD: invalid status (%d)\n", status);
         kfree(ret);
         kfree(dev_id);
-        return -1;
+        return 1;
     }
 
     // If not an SDHC card, ensure BLOCKLEN is 512 bytes
@@ -1164,7 +1164,7 @@ int sd_card_init(struct block_device **dev) {
         if(FAIL(ret)) {
             uart_printf("SD: error sending SET_BLOCKLEN\n");
             kfree(ret);
-            return -1;
+            return 2;
         }
     }
     ret->block_size = 512;
@@ -1184,7 +1184,7 @@ int sd_card_init(struct block_device **dev) {
         uart_printf("SD: error sending SEND_SCR\n");
         kfree(ret->scr);
         kfree(ret);
-        return -1;
+        return 2;
     }
 
     // Determine card version
@@ -1251,7 +1251,7 @@ int sd_card_init(struct block_device **dev) {
 
     uart_printf("SD: found a valid version %s SD card\n", sd_versions[ret->scr->sd_version]);
 #ifdef EMMC_DEBUG
-    uart_printf("SD: setup successful (status %i)\n", status);
+    uart_printf("SD: setup successful (status %d)\n", status);
 #endif
 
     // Reset interrupt register
@@ -1286,7 +1286,7 @@ static int sd_ensure_data_mode(struct emmc_block_dev *edev)
     uint32_t status = edev->last_r0;
     uint32_t cur_state = (status >> 9) & 0xf;
 #ifdef EMMC_DEBUG
-    uart_printf("status %i\n", cur_state);
+    uart_printf("status %d\n", cur_state);
 #endif
     if(cur_state == 3) {
         // Currently in the stand-by state - select it
@@ -1329,12 +1329,12 @@ static int sd_ensure_data_mode(struct emmc_block_dev *edev)
         cur_state = (status >> 9) & 0xf;
 
 #ifdef EMMC_DEBUG
-        uart_printf("%i\n", cur_state);
+        uart_printf("%d\n", cur_state);
 #endif
 
         if(cur_state != 4) {
             uart_printf("SD: unable to initialise SD card to "
-                   "data mode (state %i)\n", cur_state);
+                   "data mode (state %d)\n", cur_state);
             edev->card_rca = 0;
             return -1;
         }
@@ -1350,16 +1350,16 @@ static int sd_do_data_command(struct emmc_block_dev *edev, int is_write, uint8_t
 
     // This is as per HCSS 3.7.2.1
     if(buf_size < edev->block_size) {
-        uart_printf("SD: do_data_command() called with buffer size (%i) less than "
-               "block size (%i)\n", buf_size, edev->block_size);
+        uart_printf("SD: do_data_command() called with buffer size (%d) less than "
+               "block size (%d)\n", buf_size, edev->block_size);
         return -1;
     }
 
     divmod_t mod = divmod(buf_size, edev->block_size);
     edev->blocks_to_transfer = mod.div;
     if(mod.mod) {
-        uart_printf("SD: do_data_command() called with buffer size (%i) not an "
-               "exact multiple of block size (%i)\n", buf_size, edev->block_size);
+        uart_printf("SD: do_data_command() called with buffer size (%d) not an "
+               "exact multiple of block size (%d)\n", buf_size, edev->block_size);
         return -1;
     }
     edev->buf = buf;
@@ -1387,7 +1387,7 @@ static int sd_do_data_command(struct emmc_block_dev *edev, int is_write, uint8_t
         if(SUCCESS(edev))
             break;
         else {
-            uart_printf("SD: error sending CMD%i, ", command);
+            uart_printf("SD: error sending CMD%d, ", command);
             uart_printf("error = %08x.  ", edev->last_error);
             retry_count++;
             if(retry_count < max_retries)
@@ -1407,20 +1407,20 @@ int sd_read(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t 
     // Check the status of the card
     struct emmc_block_dev *edev = (struct emmc_block_dev *)dev;
     if(sd_ensure_data_mode(edev) != 0)
-        return -1;
+        return 2;
 
 #ifdef EMMC_DEBUG
     uart_printf("SD: read() card ready, reading from block %u\n", block_no);
 #endif
 
     if(sd_do_data_command(edev, 0, buf, buf_size, block_no) < 0)
-        return -1;
+        return 1;
 
 #ifdef EMMC_DEBUG
     uart_printf("SD: data read successful\n");
 #endif
 
-    return buf_size;
+    return 0;
 }
 
 int sd_write(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t block_no) {
@@ -1440,6 +1440,6 @@ int sd_write(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t
     uart_printf("SD: write read successful\n");
 #endif
 
-    return buf_size;
+    return 0;
 }
 

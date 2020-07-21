@@ -7,7 +7,7 @@
 #include <kernel/timer.h>
 #include <common/stdlib.h>
 
-#define EMMC_DEBUG
+// #define EMMC_DEBUG
 
 // Configuration options
 
@@ -197,7 +197,6 @@ static char *err_irpts[] = { "CMD_TIMEOUT", "CMD_CRC", "CMD_END_BIT", "CMD_INDEX
                              "DATA_TIMEOUT", "DATA_CRC", "DATA_END_BIT", "CURRENT_LIMIT",
                              "AUTO_CMD12", "ADMA", "TUNING", "RSVD" };
 #endif
-
 static uint32_t sd_commands[] = {
         SD_CMD_INDEX(0),
         SD_CMD_RESERVED(1),

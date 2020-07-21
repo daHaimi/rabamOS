@@ -13,6 +13,20 @@
 #include <common/stdlib.h>
 #include <common/main.h>
 
+
+void main_loop() {
+    while (1) {
+        loop();
+        tick();
+    }
+}
+
+void rt_loop() {
+    while (1) {
+        tick();
+    }
+}
+
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     // Declare as unused
     (void) r0;
@@ -38,7 +52,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     uart_puts("DONE\n");
     uart_printf("Kernel booted in %dms\n", uuptime() / 1000);
 
-    while (1) {
-        loop();
-    }
+    main_loop();
+    //create_kernel_thread(main_loop, "MAIN", 4);
+    //create_kernel_thread(rt_loop, "RTLOOP", 6);
 }

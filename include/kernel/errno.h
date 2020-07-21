@@ -19,31 +19,18 @@
  * THE SOFTWARE.
  */
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef ERRNO_H
+#define ERRNO_H
 
-#include <kernel/fs.h>
-#include <stdint.h>
-#include <stddef.h>
+int errno;
 
-struct block_device {
-    char *driver_name;
-    char *device_name;
-    uint8_t *device_id;
-    size_t dev_id_len;
-
-    int supports_multiple_block_read;
-    int supports_multiple_block_write;
-
-    int (*read)(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t block_num);
-    int (*write)(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t block_num);
-    size_t block_size;
-    size_t num_blocks;
-
-    struct fs * fs;
-};
-
-size_t block_read(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t starting_block);
-size_t block_write(struct block_device *dev, uint8_t *buf, uint64_t buf_size, uint32_t starting_block);
+#define ENOMEM		-1
+#define EINVAL		-2
+#define ENOENT		-3
+#define ENOTDIR		-4
+#define EFAULT		-5
+#define EROFS		-6
+#define ERANGE		-7
+#define ENOSPC		-8
 
 #endif

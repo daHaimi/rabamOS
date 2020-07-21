@@ -198,3 +198,37 @@ char * sprintf(const char * fmt, ...) {
     va_end(args);
     return out;
 }
+
+int strcmp(const char * s1, const char * s2) {
+    while(*s1 && (*s1 == *s2)) {
+        s1++;
+        s2++;
+    }
+    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+
+int strncmp(const char * s1, const char * s2, uint32_t n) {
+    uint32_t i = 0;
+    while(*s1 && (*s1 == *s2) && i < n) {
+        s1++;
+        s2++;
+        i++;
+    }
+    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+
+char * strcpy(char * dest, const char * src) {
+    uint32_t i = 0;
+    while ((dest[i] = src[i]) != '\0')
+        i++;
+    return dest;
+}
+
+char * strncpy(char * dest, const char * src, uint32_t n) {
+    uint32_t i = 0;
+    while (i < n && (dest[i] = src[i]) != '\0')
+        i++;
+    if (i < n && dest[i] != '\0')
+        dest[++i] = '\0';
+    return dest;
+}
